@@ -33,14 +33,5 @@ namespace HelldiversWwiseHandler
                 }
             }
         }
-
-        public class WEMEntry
-        {
-            public uint id;
-            public uint offset;
-            public uint size;
-            public bool prefetch = false;
-            public byte[] data;
-        }
     }
 }
