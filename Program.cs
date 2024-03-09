@@ -20,8 +20,8 @@ namespace HelldiversWwiseHandler
             string locale = "us";
 
             //DumpBanks(banks, outputpath, locale);
-            //GetWemNames(streampath, outputpath + @"\wemnames.txt", locale, outputpath);
-            Temp();
+            GetWemNames(streampath, outputpath + @"\wemnames.txt", locale, outputpath);
+            //Temp();
 
         }
 
@@ -64,13 +64,31 @@ namespace HelldiversWwiseHandler
                 {
                     matchcount++;
                     matchedhashes.Add(wemids[i]);
-                    File.Copy(Path.Combine(streampath, hash + ".wwise_stream"), Path.Combine(outputpath, "wem", wemids[i].Remove(0, 14) + ".wem"));
+                    using (var reader = new BinaryReader(File.OpenRead(Path.Combine(streampath, hash + ".wwise_stream"))))
+                    {
+                        reader.BaseStream.Position = 12;
+                        byte[] streamdata = reader.ReadBytes((int)reader.BaseStream.Length - 12);
+                        Directory.CreateDirectory(Path.Combine(outputpath, locale));
+                        using (var writer = new BinaryWriter(File.Create(Path.Combine(outputpath, "wem", wemids[i].Remove(0, 14) + ".wem"))))
+                        {
+                            writer.Write(streamdata);
+                        }
+                    }
                 }
                 else if (File.Exists(Path.Combine(streampath, lochash + ".wwise_stream")))
                 {
                     locmatchcount++;
                     matchedhashes.Add(wemids[i].Insert(14, $"{locale}/"));
-                    File.Copy(Path.Combine(streampath, lochash + ".wwise_stream"), Path.Combine(outputpath, "wem", locale, wemids[i].Remove(0, 14) + ".wem"));
+                    using (var reader = new BinaryReader(File.OpenRead(Path.Combine(streampath, hash + ".wwise_stream"))))
+                    {
+                        reader.BaseStream.Position = 12;
+                        byte[] streamdata = reader.ReadBytes((int)reader.BaseStream.Length - 12);
+                        Directory.CreateDirectory(Path.Combine(outputpath, locale));
+                        using (var writer = new BinaryWriter(File.Create(Path.Combine(outputpath, "wem", locale, wemids[i].Remove(0, 14) + ".wem"))))
+                        {
+                            writer.Write(streamdata);
+                        }
+                    }
                 }
                 else
                 {
