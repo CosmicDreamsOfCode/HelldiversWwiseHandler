@@ -55,11 +55,22 @@ namespace HelldiversWwiseHandler
             int locmatchcount = 0;
             int unmatchedcount = 0;
             List<string> matchedhashes = new List<string>();
+            string[] streams = Directory.GetFiles(streampath);
 
             for (int i = 0;i < wemids.Length; i++)
             {
-                string hash = new Hash64(wemids[i]).Hash.ToString("X").ToLower();
-                string lochash = new Hash64(wemids[i].Insert(14, $"{locale}/")).Hash.ToString("X").ToLower();
+                string hash = new Hash64(wemids[i]).ToHex();
+                string lochash = new Hash64(wemids[i].Insert(14, $"{locale}/")).ToHex();
+                if (hash.Length < 16)
+                {
+                    for (int j = 0; hash.Length < 16; j++)
+                        hash = hash.Insert(0, "0");
+                }
+                if (lochash.Length < 16)
+                {
+                    for (int j = 0; lochash.Length < 16; j++)
+                        lochash = lochash.Insert(0, "0");
+                }
                 if (File.Exists(Path.Combine(streampath, hash + ".wwise_stream")))
                 {
                     matchcount++;
@@ -79,7 +90,7 @@ namespace HelldiversWwiseHandler
                 {
                     locmatchcount++;
                     matchedhashes.Add(wemids[i].Insert(14, $"{locale}/"));
-                    using (var reader = new BinaryReader(File.OpenRead(Path.Combine(streampath, hash + ".wwise_stream"))))
+                    using (var reader = new BinaryReader(File.OpenRead(Path.Combine(streampath, lochash + ".wwise_stream"))))
                     {
                         reader.BaseStream.Position = 12;
                         byte[] streamdata = reader.ReadBytes((int)reader.BaseStream.Length - 12);
@@ -96,7 +107,7 @@ namespace HelldiversWwiseHandler
                 }
             }
             int totalcount = matchcount + locmatchcount;
-            Console.WriteLine("Match count: " + matchcount + " Loc match count: " + locmatchcount + " Unmatched count: " + unmatchedcount);
+            Console.WriteLine("Match count: " + matchcount + " Loc match count: " + locmatchcount + " total count: " + totalcount);
 
             File.WriteAllLines(Path.Combine(outputpath, "matchedhashes.txt"), matchedhashes);
         }
@@ -136,6 +147,11 @@ namespace HelldiversWwiseHandler
             public Hash64(string input)
             {
                 Hash = ImportFuncs.stingray_murmur_64(input);
+            }
+
+            public string ToHex()
+            {
+                return Hash.ToString("X").ToLower();
             }
         }
     }
